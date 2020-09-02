@@ -26,7 +26,7 @@ $(document).ready(function () {
     }
 
     $('.closeButton').click(function () {
-        closeModal(['#reasonName'])
+        closeModal(['#reasonName', '#reasonNameEdit'])
     })
 
     $('#addReasonModal').click(function () {
@@ -63,9 +63,9 @@ $(document).ready(function () {
         event.preventDefault();
         $.ajax({
             type: 'GET',
-            url: '/api/results/for',
+            url: '/api/results/single-reason',
             data: {
-              // item: $(this).attr('data-item')
+               item: $(this).attr('data-item')
             }
         }).then((response) => {
             if(!response) {
@@ -80,6 +80,36 @@ $(document).ready(function () {
             }
 
         })
+    })
+
+    $('#addReasonModal').click(function () {
+        event.preventDefault();
+
+        $.ajax({
+            type: 'GET',
+            url: '/api/results/update/{}',
+            data: {
+                name: function () {return $('#reasonNameEdit').val()},
+            }
+        }).then((response) => {
+            results.ajax.reload();
+            if(!response) {
+                Swal.fire({
+                    title: 'Результат не змінено',
+                    text: 'Нерпавильно заповнені поля',
+                    type: 'error',
+                    confirmButtonColor: '#d33d33',
+                    confirmButtonText: 'OK',
+                })} else {
+                Swal.fire({
+                    title: 'Результат змінено',
+                    type: 'info',
+                    confirmButtonText: 'OK',
+                })
+            }
+
+        })
+        $('.closeButton').click()
     })
 
 })

@@ -42,8 +42,25 @@ class MainController extends Controller
         }
     }
 
+    public function updateResult(Request $request) {
+        if(!$request->get('name')) {
+            return response(false);
+        }
+
+        $reason = new Reason();
+        $reason->name = $request->get('name');
+        if($reason->save()) {
+            return response(true);
+        }
+    }
+
     public function getOneReason(Request $request)
     {
-        dd($request->all());
+        $reason = Reason::find((int)$request->get('item'));
+        if(!$reason) {
+            return response(false);
+        }
+
+        return response(['name' => $reason->name]);
     }
 }

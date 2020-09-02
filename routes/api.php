@@ -19,5 +19,5 @@ Route::prefix('results')->group(function () {
     Route::get('/add', 'MainController@addResult');
     Route::get('/update', 'MainController@updateResult');
     Route::get('/delete', 'MainController@deleteResult');
-    Route::get('/for', 'MainController@addResult');
+    Route::get('/single-reason', 'MainController@getOneReason');
 });
