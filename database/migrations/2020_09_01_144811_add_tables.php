@@ -17,7 +17,6 @@ class AddTables extends Migration
             $table->id();
             $table->string('name');
             $table->integer('cash');
-            $table->string('email')->unique();
             $table->timestamps();
         });
 
@@ -29,13 +28,14 @@ class AddTables extends Migration
 
         Schema::create('results', function (Blueprint $table) {
             $table->id();
-            $table->text('reasons');
+            $table->string('name')->default('Vika Flex vs Enemy');
+            $table->string('people');
+            $table->integer('people_id');
+            $table->string('reasons');
             $table->integer('coef');
-            $table->boolean('result');
             $table->boolean('status');
             $table->integer('cash');
-            $table->unsignedBigInteger('people_id');
-            $table->foreign('people_id')->references('id')->on('people')->onDelete('cascade');
+            $table->integer('cashWin');
             $table->timestamps();
         });
     }

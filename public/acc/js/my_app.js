@@ -118,6 +118,34 @@ $(document).ready(function () {
       type: "GET"
     }
   });
+  var people = $('#people').DataTable({
+    processing: true,
+    serverSide: true,
+    lengthMenu: [10, 25, 50],
+    searching: false,
+    ordering: false,
+    language: {
+      "url": "https://cdn.datatables.net/plug-ins/1.10.20/i18n/Ukrainian.json"
+    },
+    responsive: true,
+    columns: [{
+      name: "name",
+      className: "table-text-align-center",
+      width: "50%"
+    }, {
+      name: "cache",
+      className: "table-text-align-center",
+      width: "25%"
+    }, {
+      name: "actions",
+      className: "table-text-align-center",
+      width: "25%"
+    }],
+    ajax: {
+      url: '/api/people/get',
+      type: "GET"
+    }
+  });
 
   function closeModal(ids) {
     $.each(ids, function (index, value) {
@@ -126,7 +154,7 @@ $(document).ready(function () {
   }
 
   $('.closeButton').click(function () {
-    closeModal(['#reasonName', '#reasonNameEdit']);
+    closeModal(['#reasonName', '#reasonNameEdit', '#peopleNameAdd', '#peopleCacheAdd', '#peopleNameEdit', '#peopleCacheEdit']);
   });
   $('#addReasonModal').click(function () {
     event.preventDefault();
@@ -159,6 +187,41 @@ $(document).ready(function () {
     });
     $('.closeButton').click();
   });
+  $('#addPeopleModal').click(function () {
+    event.preventDefault();
+    $.ajax({
+      type: 'GET',
+      url: '/api/people/add',
+      data: {
+        name: function name() {
+          return $('#peopleNameAdd').val();
+        },
+        cash: function cash() {
+          return $('#peopleCacheAdd').val();
+        }
+      }
+    }).then(function (response) {
+      results.ajax.reload();
+
+      if (!response) {
+        Swal.fire({
+          title: 'Людину не додано',
+          text: 'Нерпавильно заповнені поля',
+          type: 'error',
+          confirmButtonColor: '#d33d33',
+          confirmButtonText: 'OK'
+        });
+      } else {
+        Swal.fire({
+          title: 'Людину додано',
+          type: 'info',
+          confirmButtonText: 'OK'
+        });
+      }
+    });
+    $('.closeButton').click();
+    people.ajax.reload();
+  });
   $('body').on('click', '.editReason', function () {
     event.preventDefault();
     $.ajax({
@@ -178,17 +241,100 @@ $(document).ready(function () {
         });
       } else {
         $('#reasonNameEdit').val(response.name);
+        $('#editReasonModal').attr('data-item', response.id);
       }
     });
   });
-  $('#addReasonModal').click(function () {
+  $('body').on('click', '.editPeople', function () {
     event.preventDefault();
     $.ajax({
       type: 'GET',
-      url: '/api/results/update/{}',
+      url: '/api/people/single',
+      data: {
+        item: $(this).attr('data-item')
+      }
+    }).then(function (response) {
+      if (!response) {
+        $('.closeButton').click();
+        Swal.fire({
+          title: 'Помилка',
+          text: 'Не чудіть',
+          type: 'error',
+          confirmButtonColor: '#d33d33',
+          confirmButtonText: 'OK'
+        });
+      } else {
+        $('#peopleNameEdit').val(response.name);
+        $('#peopleCacheEdit').val(response.cash);
+        $('#editPeopleModal').attr('data-item', response.id);
+      }
+    });
+  });
+  $('body').on('click', '.deletePeople', function () {
+    event.preventDefault();
+    $.ajax({
+      type: 'GET',
+      url: '/api/people/delete/' + $(this).attr('data-item')
+    }).then(function (response) {
+      if (!response) {
+        Swal.fire({
+          title: 'Помилка',
+          text: 'Не чудіть',
+          type: 'error',
+          confirmButtonColor: '#d33d33',
+          confirmButtonText: 'OK'
+        });
+      } else {
+        Swal.fire({
+          title: 'Видалено',
+          text: 'Користувача видалено',
+          type: 'info',
+          confirmButtonColor: '#d33d33',
+          confirmButtonText: 'OK'
+        });
+      }
+
+      people.ajax.reload();
+    });
+  });
+  $('body').on('click', '.deleteReason', function () {
+    event.preventDefault();
+    $.ajax({
+      type: 'GET',
+      url: '/api/results/delete/' + $(this).attr('data-item')
+    }).then(function (response) {
+      if (!response) {
+        Swal.fire({
+          title: 'Помилка',
+          text: 'Не чудіть',
+          type: 'error',
+          confirmButtonColor: '#d33d33',
+          confirmButtonText: 'OK'
+        });
+      } else {
+        Swal.fire({
+          title: 'Видалено',
+          text: 'Результат видалено',
+          type: 'info',
+          confirmButtonColor: '#d33d33',
+          confirmButtonText: 'OK'
+        });
+      }
+
+      results.ajax.reload();
+    });
+  });
+  $('#editPeopleModal').click(function () {
+    event.preventDefault();
+    $.ajax({
+      type: 'GET',
+      url: '/api/people/update/' + $(this).attr('data-item'),
       data: {
         name: function name() {
-          return $('#reasonNameEdit').val();
+          return $('#peopleNameEdit').val();
+        },
+        cash: function cash() {
+          return $('#peopleCacheEdit').val();
         }
       }
     }).then(function (response) {
@@ -196,7 +342,7 @@ $(document).ready(function () {
 
       if (!response) {
         Swal.fire({
-          title: 'Результат не змінено',
+          title: 'Дані не змінено',
           text: 'Нерпавильно заповнені поля',
           type: 'error',
           confirmButtonColor: '#d33d33',
@@ -204,11 +350,180 @@ $(document).ready(function () {
         });
       } else {
         Swal.fire({
-          title: 'Результат змінено',
+          title: 'Дані змінено',
           type: 'info',
           confirmButtonText: 'OK'
         });
       }
+    });
+    $('.closeButton').click();
+    people.ajax.reload();
+  });
+  $('#reloadName').click(function () {
+    if ($('#matchName').val() == "Vika Flex vs Enemy") {
+      $('#matchName').val('Enemy vs Vika Flex');
+    } else {
+      $('#matchName').val('Vika Flex vs Enemy');
+    }
+  });
+  $('body').on('click', '#addOrderFor', function () {
+    event.preventDefault();
+    $.ajax({
+      type: 'GET',
+      url: '/api/booking/add',
+      data: {
+        name: function name() {
+          return $('#matchName').val();
+        },
+        people: function people() {
+          return $('#peopleDev').val();
+        },
+        reasons: function reasons() {
+          return $('#reason').val();
+        },
+        coef: function coef() {
+          return $('#coef').val();
+        },
+        cash: function cash() {
+          return $('#stavka').val();
+        }
+      }
+    }).then(function (response) {
+      pastResult.ajax.reload();
+      people.ajax.reload();
+      realResult.ajax.reload();
+      pastResult.ajax.reload();
+
+      if (!response) {
+        Swal.fire({
+          title: 'Ставка не зроблена',
+          text: 'Десь помилка',
+          type: 'error',
+          confirmButtonColor: '#d33d33',
+          confirmButtonText: 'OK'
+        });
+      } else {
+        Swal.fire({
+          title: 'Ставка зроблена',
+          type: 'info',
+          confirmButtonText: 'OK'
+        });
+      }
+    });
+    $('.closeButton').click();
+  });
+  var realResult = $('#activeResults').DataTable({
+    processing: true,
+    serverSide: true,
+    lengthMenu: [10, 25, 50],
+    searching: false,
+    ordering: false,
+    language: {
+      "url": "https://cdn.datatables.net/plug-ins/1.10.20/i18n/Ukrainian.json"
+    },
+    responsive: true,
+    columns: [{
+      name: "a",
+      className: "table-text-align-center"
+    }, {
+      name: "b",
+      className: "table-text-align-center"
+    }, {
+      name: "c",
+      className: "table-text-align-center"
+    }, {
+      name: "d",
+      className: "table-text-align-center"
+    }, {
+      name: "e",
+      className: "table-text-align-center"
+    }, {
+      name: "f",
+      className: "table-text-align-center"
+    }, {
+      name: "g",
+      className: "table-text-align-center"
+    }, {
+      name: "h",
+      className: "table-text-align-center"
+    }],
+    ajax: {
+      url: '/api/booking/get',
+      type: "GET",
+      data: {
+        'status': 2
+      }
+    }
+  });
+  var pastResult = $('#pastResults').DataTable({
+    processing: true,
+    serverSide: true,
+    lengthMenu: [10, 25, 50],
+    searching: false,
+    ordering: false,
+    language: {
+      "url": "https://cdn.datatables.net/plug-ins/1.10.20/i18n/Ukrainian.json"
+    },
+    responsive: true,
+    columns: [{
+      name: "a",
+      className: "table-text-align-center"
+    }, {
+      name: "b",
+      className: "table-text-align-center"
+    }, {
+      name: "c",
+      className: "table-text-align-center"
+    }, {
+      name: "d",
+      className: "table-text-align-center"
+    }, {
+      name: "e",
+      className: "table-text-align-center"
+    }, {
+      name: "f",
+      className: "table-text-align-center"
+    }, {
+      name: "g",
+      className: "table-text-align-center"
+    }, {
+      name: "h",
+      className: "table-text-align-center"
+    }],
+    ajax: {
+      url: '/api/booking/get',
+      type: "GET",
+      data: {
+        'status': 1
+      }
+    }
+  });
+  $('body').on('click', '.yes', function () {
+    event.preventDefault();
+    $.ajax({
+      type: 'GET',
+      url: '/api/booking/result/' + $(this).attr('data-item'),
+      data: {
+        res: 1
+      }
+    }).then(function (response) {
+      pastResult.ajax.reload();
+      people.ajax.reload();
+      realResult.ajax.reload();
+      pastResult.ajax.reload();
+    });
+    $('.closeButton').click();
+  });
+  $('body').on('click', '.no', function () {
+    event.preventDefault();
+    $.ajax({
+      type: 'GET',
+      url: '/api/booking/result/' + $(this).attr('data-item')
+    }).then(function (response) {
+      pastResult.ajax.reload();
+      people.ajax.reload();
+      realResult.ajax.reload();
+      pastResult.ajax.reload();
     });
     $('.closeButton').click();
   });

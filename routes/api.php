@@ -17,7 +17,21 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('results')->group(function () {
     Route::get('/get', 'MainController@getResults');
     Route::get('/add', 'MainController@addResult');
-    Route::get('/update', 'MainController@updateResult');
-    Route::get('/delete', 'MainController@deleteResult');
+    Route::get('/update/{reason}', 'MainController@updateResult');
+    Route::get('/delete/{reason}', 'MainController@deleteResult');
     Route::get('/single-reason', 'MainController@getOneReason');
+});
+
+Route::prefix('people')->group(function () {
+    Route::get('/get', 'PeopleController@get');
+    Route::get('/add', 'PeopleController@add');
+    Route::get('/update/{people}', 'PeopleController@update');
+    Route::get('/delete/{people}', 'PeopleController@delete');
+    Route::get('/single', 'PeopleController@getOne');
+});
+
+Route::prefix('booking')->group(function () {
+    Route::get('/get', 'BookingController@get');
+    Route::get('/add', 'BookingController@add');
+    Route::get('/result/{result}', 'BookingController@result');
 });
